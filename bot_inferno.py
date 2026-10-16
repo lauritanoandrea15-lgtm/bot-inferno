@@ -2,6 +2,7 @@ import os
 import threading
 from flask import Flask
 
+# Crea un mini server web per far capire a Render che il servizio è attivo
 app = Flask(__name__)
 
 @app.route('/')
@@ -13,6 +14,7 @@ def run_web():
     app.run(host='0.0.0.0', port=port)
 
 threading.Thread(target=run_web, daemon=True).start()
+
 import logging
 import asyncio
 from datetime import datetime, timedelta
@@ -40,6 +42,17 @@ user_deadlines = {}
 
 # Set per memorizzare gli ID delle anime già passate per il girone
 returning_souls = set()
+
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Comando /start per presentare il bot."""
+    await update.message.reply_text(
+        "🔥 **Benvenuto nell'Inferno!** 🔥\n\n"
+        "Questo bot gestisce l'accesso al girone dei dannati.\n"
+        "Comandi disponibili:\n"
+        "💀 `/tempo` - Per controllare il tempo rimasto prima della condanna.\n"
+        "📜 `/lista` - (Solo Admin) Per vedere le anime in prova.",
+        parse_mode="Markdown"
+    )
 
 async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Accoglie la nuova anima (o la riconosce), imposta il timer e manda il messaggio infernale."""
@@ -128,7 +141,7 @@ async def check_time_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"⏳ **LA CLESSIDRA DEL DANNATO** ⏳\n\n"
         f"Ti restano **{ore} ore, {minuti} minuti e {secondi} secondi** prima che le fiamme ti caccino via da questo girone!\n\n"
         f"Prega che un **Admin** clicchi sul pulsante di salvezza!",
-        parse_Mode="Markdown"
+        parse_mode="Markdown"
     )
 
 async def admin_list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -187,6 +200,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     application = ApplicationBuilder().token(TOKEN).build()
 
+    application.add_handler(CommandHandler("start", start_command))
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
     application.add_handler(CommandHandler("tempo", check_time_command))
     application.add_handler(CommandHandler("lista", admin_list_command))
